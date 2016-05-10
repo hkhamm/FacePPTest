@@ -1,3 +1,5 @@
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -6,6 +8,8 @@ import com.facepp.http.HttpRequests;
 import com.facepp.http.PostParameters;
 
 import java.io.File;
+import java.net.URI;
+import java.util.Objects;
 
 /**
  * Facilitates communication between the authentication server and the FacePlusPlus API.
@@ -47,7 +51,7 @@ public class FacePPAPICommunicator {
      * @param url the image URL
      * @return the FacePP FaceId string
      */
-    protected String detectFace(String url) {
+    String detectFace(String url) {
         System.out.println("\n[FPP] Detecting face from URL");
         JSONObject response = new JSONObject();
 
@@ -66,7 +70,7 @@ public class FacePPAPICommunicator {
      * @param file the image file
      * @return the result string
      */
-    protected String detectFace(File file) {
+    String detectFace(File file) {
         System.out.println("\n[FPP] Detecting face from file");
         JSONObject response = new JSONObject();
 
@@ -85,7 +89,7 @@ public class FacePPAPICommunicator {
      * @param data the image byte array
      * @return the result string
      */
-    protected String detectFace(byte[] data) {
+    String detectFace(byte[] data) {
         System.out.println("\n[FPP] Detecting face from byte[]");
         JSONObject response = new JSONObject();
 
@@ -104,14 +108,35 @@ public class FacePPAPICommunicator {
      * @param personName the person's name
      * @return the response string
      */
-    protected String createPerson(String personName) {
+    String createPerson(String personName) {
         System.out.println("\n[FPP] Creating person");
         JSONObject response = new JSONObject();
 
+        Integer errorCode;
+        String errorMessage;
         try {
             response = httpRequests.personCreate(new PostParameters().setPersonName(personName));
         } catch (FaceppParseException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
+////            e.getMessage();
+//            errorCode = e.getErrorCode();
+//            errorMessage = e.getErrorMessage();
+//
+//            System.out.println(e.getHttpResponseCode());
+
+            // Error: NAME_EXIST
+//            if (errorCode == 1503) {
+//                try {
+//                    response = httpRequests.personGetInfo(new PostParameters().setPersonName(personName));
+//                } catch (FaceppParseException e1) {
+//                    e1.printStackTrace();
+//                }
+//            }
+            try {
+                response = httpRequests.personGetInfo(new PostParameters().setPersonName(personName));
+            } catch (FaceppParseException e1) {
+                e1.printStackTrace();
+            }
         }
 
         System.out.println(response);
@@ -133,7 +158,7 @@ public class FacePPAPICommunicator {
      * @param personId the person's ID
      * @return the response string
      */
-    protected String removePerson(String personId) {
+    String removePerson(String personId) {
         System.out.println("\n[FPP] Removing person");
         JSONObject response = new JSONObject();
 
@@ -152,7 +177,7 @@ public class FacePPAPICommunicator {
      * @param result a JSONObject result returned from a detect face API call
      * @return the face ID string
      */
-    protected String getFaceId(JSONObject result) {
+    String getFaceId(JSONObject result) {
         String faceId = "";
 
         try {
@@ -170,7 +195,7 @@ public class FacePPAPICommunicator {
      * @param url the image URL
      * @return the response string
      */
-    protected String addFace(String personId, String url) {
+    String addFace(String personId, String url) {
         JSONObject response = new JSONObject();
 
         String faceId = detectFace(url);
@@ -194,7 +219,7 @@ public class FacePPAPICommunicator {
      * @param faceId the face ID string
      * @return the response string
      */
-    protected String removeFace(String personId, String faceId) {
+    String removeFace(String personId, String faceId) {
         System.out.println("\n[FPP] Removing face");
         JSONObject response = new JSONObject();
 
@@ -213,7 +238,7 @@ public class FacePPAPICommunicator {
      * Creates a person group.
      * @return the response string
      */
-    protected String createGroup() {
+    String createGroup() {
         System.out.println("\n[FPP] Adding group");
         JSONObject response = new JSONObject();
 
@@ -231,7 +256,7 @@ public class FacePPAPICommunicator {
      * Removes an existing person group.
      * @return the response string
      */
-    protected String removeGroup() {
+    String removeGroup() {
         System.out.println("\n[FPP] Removing group");
         JSONObject response = new JSONObject();
 
@@ -246,11 +271,29 @@ public class FacePPAPICommunicator {
     }
 
     /**
+     * Gets an existing person group's info.
+     * @return the response string
+     */
+    String getGroupInfo() {
+        System.out.println("\n[FPP] Getting group info");
+        JSONObject response = new JSONObject();
+
+        try {
+            response = httpRequests.groupGetInfo(new PostParameters().setGroupName(groupName));
+        } catch (FaceppParseException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println(response);
+        return response.toString();
+    }
+
+    /**
      * Adds a person to a group with the person's ID.
      * @param personId the person's ID
      * @return the response string
      */
-    protected String addPerson(String personId) {
+    String addPerson(String personId) {
         System.out.println("\n[FPP] Adding person to group");
         JSONObject response = new JSONObject();
 
@@ -269,7 +312,7 @@ public class FacePPAPICommunicator {
      * Trains a person group in preparation for identification.
      * @return the response string
      */
-    protected String trainGroup() {
+    String trainGroup() {
         System.out.println("\n[FPP] Training group");
         JSONObject trainResponse;
         JSONObject response = new JSONObject();
@@ -292,7 +335,7 @@ public class FacePPAPICommunicator {
      * @param url the image URL
      * @return the response JSONObject
      */
-    protected JSONObject identifyPerson(String url) {
+    JSONObject identifyPerson(String url) {
         System.out.println("\n[FPP] Identifying person from a url");
         JSONObject response = new JSONObject();
 
@@ -311,7 +354,7 @@ public class FacePPAPICommunicator {
      * @param file the image file
      * @return the response JSONObject
      */
-    protected JSONObject identifyPerson(File file) {
+    JSONObject identifyPerson(File file) {
         System.out.println("\n[FPP] Identifying person from a file");
         JSONObject response = new JSONObject();
 
@@ -330,12 +373,57 @@ public class FacePPAPICommunicator {
      * @param data the image byte array
      * @return the response JSONObject
      */
-    protected JSONObject identifyPerson(byte[] data) {
+    JSONObject identifyPerson(byte[] data) {
         System.out.println("\n[FPP] Identifying person from a byte[]");
         JSONObject response = new JSONObject();
 
+        Integer errorCode;
+        String errorMessage;
         try {
             response = httpRequests.recognitionIdentify(new PostParameters().setGroupName(groupName).setImg(data));
+        } catch (FaceppParseException e) {
+            errorCode = e.getErrorCode();
+            errorMessage = e.getErrorMessage();
+            e.printStackTrace();
+        }
+
+        System.out.println(response);
+        return response;
+    }
+
+    Boolean trainPerson(String personId) {
+        System.out.println("\n[FPP] Training person");
+        JSONObject trainResponse;
+        JSONObject response = new JSONObject();
+
+        try {
+            trainResponse = httpRequests.trainVerify(new PostParameters().setPersonId(personId));
+            response = httpRequests.getSessionSync(trainResponse.getString("session_id"));
+        } catch (FaceppParseException | JSONException e) {
+            e.printStackTrace();
+        }
+
+        Boolean result = false;
+        try {
+            result = response.getJSONObject("result").getBoolean("success");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println(response);
+        return result;
+    }
+
+    JSONObject verifyPerson(String personId, String image) {
+        JSONObject response = new JSONObject();
+
+        String faceId = detectFace(image);
+
+        System.out.println("\n[FPP] Verifying person from a byte[]");
+
+        try {
+            response = httpRequests.recognitionVerify(
+                    new PostParameters().setPersonId(personId).setFaceId(faceId).setUrl(image));
         } catch (FaceppParseException e) {
             e.printStackTrace();
         }
@@ -345,11 +433,13 @@ public class FacePPAPICommunicator {
     }
 
     public static void main(String[] args) {
-        String apiKey = "FIX ME";
-        String apiSecret = "FIX ME";
+        String apiKey = "c3de3abff9815f7bdf3b35347a519ccd";
+        String apiSecret = "bLdQbvPADlkjoUgXsoqzu4hcFIaEnN9o";
         FacePPAPICommunicator fpp = new FacePPAPICommunicator(apiKey, apiSecret);
 
-        fpp.createGroup();
+//        fpp.removeGroup();
+//        fpp.createGroup();
+//        fpp.getGroupInfo();
 
         String personId = fpp.createPerson("person_0");
 
@@ -372,14 +462,19 @@ public class FacePPAPICommunicator {
                 "http://media.vocativ.com/photos/2015/10/RTS2O4I-22195838534.jpg");
 
         fpp.addFace(personId,
-                "https://upload.wikimedia.org/wikipedia/commons/e/e9/Official_portrait_of_Barack_Obama.jpg");
+                "http://i.huffpost.com/gen/2518262/images/n-OBAMA-628x314.jpg");
 
         fpp.addFace(personId,
                 "http://cbsnews2.cbsistatic.com/hub/i/r/2015/10/09/f27caaea-86d1-41e2-bec2-97e89e5dba03/thumbnail/770x430/0a4b24d154ee526bb6811f1888e16600/presidentobamamain.jpg");
 
+        fpp.trainPerson(personId);
+
+        fpp.verifyPerson(personId, 
+                "https://upload.wikimedia.org/wikipedia/commons/e/e9/Official_portrait_of_Barack_Obama.jpg");
+
         fpp.trainGroup();
 
-        fpp.identifyPerson("http://i.huffpost.com/gen/2518262/images/n-OBAMA-628x314.jpg");
+        fpp.identifyPerson("https://upload.wikimedia.org/wikipedia/commons/e/e9/Official_portrait_of_Barack_Obama.jpg");
 
         fpp.removePerson(personId);
     }
